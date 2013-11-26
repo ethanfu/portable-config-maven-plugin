@@ -5,63 +5,43 @@ import com.juvenxu.portableconfig.ContentFilter;
 import com.juvenxu.portableconfig.model.ConfigFile;
 import com.juvenxu.portableconfig.model.PortableConfig;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.codehaus.plexus.component.annotations.Component;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 
 /**
  * @author juven
  */
 @Component(role = AbstractTraverser.class, hint = "directory")
-public class DirectoryTraverser extends AbstractTraverser
-{
+public class DirectoryTraverser extends AbstractTraverser {
 
-  @Override
-  public void traverse(PortableConfig portableConfig, File directory) throws IOException
-  {
-    for (ConfigFile configFile : portableConfig.getConfigFiles())
-    {
-      File file = new File(directory, configFile.getPath());
+    @Override
+    public void traverse(PortableConfig portableConfig, File directory) throws IOException {
+        for (ConfigFile configFile : portableConfig.getConfigFiles()) {
+            File file = new File(directory, configFile.getPath());
 
-      if (!file.exists() || file.isDirectory())
-      {
-        getLogger().warn(String.format("File: %s does not exist or is a directory.", file.getPath()));
+            if (!file.exists() || file.isDirectory()) {
+                getLogger().warn(String.format("File: %s does not exist or is a directory.", file.getPath()));
 
-        continue;
-      }
+                continue;
+            }
 
-      if (!hasContentFilter(configFile.getType()))
-      {
-        getLogger().warn(String.format("Ignore replacing: %s", file.getPath()));
+            if (!hasContentFilter(configFile.getType())) {
+                getLogger().warn(String.format("Ignore replacing: %s", file.getPath()));
 
-        continue;
-      }
+                continue;
+            }
 
-      getLogger().info(String.format("Replacing file: %s", file.getPath()));
+            getLogger().info(String.format("Replacing file: %s", file.getPath()));
 
-      File tmpTxt = File.createTempFile(Long.toString(System.nanoTime()), ".txt");
+            File tmpTxt = File.createTempFile(Long.toString(System.nanoTime()), ".txt");
 
-      ContentFilter contentFilter = getContentFilter(configFile.getType());
+            ContentFilter contentFilter = getContentFilter(configFile.getType());
 
-      Reader reader = null;
+            contentFilter.filter(file, tmpTxt, configFile.getReplaces());
 
-      Writer writer = null;
-
-      try
-      {
-        reader = new FileReader(file);
-        writer = new FileWriter(tmpTxt);
-
-        contentFilter.filter(reader, writer, configFile.getReplaces());
-      }
-      finally
-      {
-        IOUtils.closeQuietly(reader);
-        IOUtils.closeQuietly(writer);
-      }
-
-      FileUtils.copyFile(tmpTxt, file);
+            FileUtils.copyFile(tmpTxt, file);
+        }
     }
-  }
 }

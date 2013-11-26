@@ -79,7 +79,7 @@ public class JarTraverser extends AbstractTraverser
 
         Reader reader = new InputStreamReader(new ByteArrayInputStream(byteArrayOutputStream.toByteArray()));
         Writer writer = new OutputStreamWriter(jarOutputStream);
-        contentFilter.filter(reader, writer, configFile.getReplaces());
+//        contentFilter.filter(reader, writer, configFile.getReplaces());
 
         filtered = true;
       }
